@@ -1,6 +1,6 @@
 ---
 tasks:
-- id: 1
-  title: Greet
-  description: Say, "Hello!"
-total: 1
+- id: 2
+  title: Eat
+  description: Yum
+total: 2

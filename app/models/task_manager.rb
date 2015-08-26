@@ -1,10 +1,13 @@
 require 'yaml/store'
-require_relative 'task'
 
 class TaskManager
 
   def self.database
-    @database ||= YAML::Store.new("db/task_manager")
+    if ENV["RACK_ENV"] == "test"
+      @database ||= YAML::Store.new("db/test_db")
+    else
+      @database ||= YAML::Store.new("db/task_manager")
+    end
   end
 
   def self.create(task)
@@ -19,12 +22,33 @@ class TaskManager
     end
   end
 
+  def self.update(id, task)
+    database.transaction do
+      target = database['tasks'].find { |data| data["id"] == id }
+      target["title"] = task[:title]
+      target["description"] = task[:description]
+    end
+  end
+
+  def self.delete(id)
+    database.transaction do
+      database['tasks'].delete_if { |task| task["id"] == id }
+    end
+  end
+
   def self.all
     raw_tasks.map { |data| Task.new(data) }
   end
 
   def self.find(id)
     Task.new(raw_task(id))
+  end
+
+  def self.delete_all
+    database.transaction do
+      database['tasks'] = []
+      database['total'] = 0
+    end
   end
 
   private
